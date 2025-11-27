@@ -49,3 +49,46 @@ MEETUP_BOT/
 | `Donation`                | Донат пользователя для конкретного Event с суммой, валютой, провайдером оплаты и статусом платежа.                           |
 | `Broadcast`               | Представляет рассылку или важное объявление, созданное организатором, связанное с Event или глобальное.                      |
 | `BroadcastDelivery`       | Лог доставки Broadcast каждому TelegramUser, чтобы контролировать успешность отправки.                                       |
+
+
+
+уже сделано
+1. Клавиатуры (main_menu.py)
+
+Главное меню (get_main_menu_keyboard)
+
+Клавиатура выбора суммы доната (get_donate_keyboard)
+
+Подтверждение суммы, cancel, нетворкинг, меню спикера и т.д.
+
+Это отлично — UI на кнопках уже готов.
+
+2. Donate-handlers (handlers.py)
+
+donate_entry — показывает инлайн-кнопки “Поддержать митап / Не сейчас”.
+
+donate_choice — обрабатывает выбор:
+
+при donate_no завершает диалог и “не давит” ✔️
+
+при donate_yes просит ввести сумму.
+
+donate_set_amount — принимает сумму, создаёт Donation через create_pending_donation и сразу помечает paid через mark_donation_paid.
+
+
+
+Как запустить и протестировать
+
+Запустить Django-сервер (если нужен админ):
+
+python manage.py runserver
+
+
+В отдельном терминале запустить бота:
+
+python manage.py run_bot
+
+
+Открыть в Telegram своего бота @MeeetUuup_bot, написать /start.
+
+cd /.../meetup_bot/meetupbot
