@@ -17,6 +17,19 @@ from core.bot.handlers import (
     donate_choice,
     donate_set_amount,
     ASK_AMOUNT,
+    networking_start,
+    profile_fill_name,
+    profile_fill_age,
+    profile_fill_stack,
+    profile_fill_goal,
+    profile_menu_handler,
+    PROFILE_FILL_NAME,
+    PROFILE_FILL_AGE,
+    PROFILE_FILL_STACK,
+    PROFILE_FILL_GOAL,
+    PROFILE_SHOW_MENU,
+    MATCH_MENU,
+    match_menu_handler,
 )
 from core.bot.keyboards.main_menu import get_main_menu_keyboard
 
@@ -43,6 +56,37 @@ def build_updater() -> Updater:
 
     # /start
     dp.add_handler(CommandHandler("start", start))
+
+    #Диалог "Познакомиться"
+    networking_conv = ConversationHandler(
+        entry_points=[
+            MessageHandler(Filters.regex(r"^Познакомиться$"), networking_start),
+        ],
+        states={
+            PROFILE_FILL_NAME: [
+                MessageHandler(Filters.text & ~Filters.command, profile_fill_name),
+            ],
+            PROFILE_FILL_AGE: [
+                MessageHandler(Filters.text & ~Filters.command, profile_fill_age),
+            ],
+            PROFILE_FILL_STACK: [
+                MessageHandler(Filters.text & ~Filters.command, profile_fill_stack),
+            ],
+            PROFILE_FILL_GOAL: [
+                MessageHandler(Filters.text & ~Filters.command, profile_fill_goal),
+            ],
+            PROFILE_SHOW_MENU: [
+                MessageHandler(Filters.text & ~Filters.command, profile_menu_handler),
+            ],
+            MATCH_MENU: [
+                MessageHandler(Filters.text & ~Filters.command, match_menu_handler),
+            ],
+        },
+        fallbacks=[],
+    )
+
+    dp.add_handler(networking_conv)
+
 
     # диалог доната:
     # - вход по кнопке "Донат" из обычной клавиатуры
