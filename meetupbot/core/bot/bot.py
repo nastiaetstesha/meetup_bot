@@ -24,6 +24,17 @@ from core.bot.handlers.handlers_speakers import (
     show_speaker_bio,
     CHOOSING_SPEAKER,
 )
+from core.bot.handlers.handlers_questions import (
+    ask_question_entry,
+    ask_question_choose_talk,
+    ask_question_write,
+    enter_speaker_mode,
+    show_speaker_questions,
+    speaker_still_talking,
+    speaker_finished,
+    CHOOSE_TALK,
+    WRITE_QUESTION,
+)
 from core.bot.keyboards.main_menu import get_main_menu_keyboard
 
 
@@ -69,6 +80,43 @@ def build_updater() -> Updater:
         fallbacks=[],
     )
     dp.add_handler(speakers_conv)
+
+    # слушатель: задать вопрос
+    ask_question_conv = ConversationHandler(
+        entry_points=[
+            MessageHandler(Filters.regex(r"^Задать вопрос$"), ask_question_entry),
+        ],
+        states={
+            CHOOSE_TALK: [
+                MessageHandler(Filters.text & ~Filters.command, ask_question_choose_talk),
+            ],
+            WRITE_QUESTION: [
+                MessageHandler(Filters.text & ~Filters.command, ask_question_write),
+            ],
+        },
+        fallbacks=[],
+    )
+    dp.add_handler(ask_question_conv)
+
+    # спикер: вход в режим
+    dp.add_handler(
+        MessageHandler(Filters.regex(r"^Я спикер$"), enter_speaker_mode)
+    )
+
+    # спикер: посмотреть вопросы
+    dp.add_handler(
+        MessageHandler(Filters.regex(r"^Вопросы$"), show_speaker_questions)
+    )
+
+    # спикер: ещё выступаю
+    dp.add_handler(
+        MessageHandler(Filters.regex(r"^Еще выступаю$"), speaker_still_talking)
+    )
+
+    # спикер: завершил выступление
+    dp.add_handler(
+        MessageHandler(Filters.regex(r"^Выступил$"), speaker_finished)
+    )
 
     # диалог доната:
     # - вход по кнопке "Донат" из обычной клавиатуры
