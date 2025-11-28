@@ -12,13 +12,20 @@ from telegram.ext import (
     Filters,
 )
 
-from meetupbot.core.bot.handlers.handlers_donate import (
+from core.bot.handlers.handlers_donate import (
     donate_entry,
     donate_choice,
     donate_set_amount,
     ASK_AMOUNT,
 )
+from core.bot.handlers.handlers_schedule import show_today_schedule
+from core.bot.handlers.handlers_speakers import (
+    show_speakers_entry,
+    show_speaker_bio,
+    CHOOSING_SPEAKER,
+)
 from core.bot.keyboards.main_menu import get_main_menu_keyboard
+
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +50,25 @@ def build_updater() -> Updater:
 
     # /start
     dp.add_handler(CommandHandler("start", start))
+
+    # Афиша на сегодня
+    dp.add_handler(
+        MessageHandler(Filters.regex(r"^Афиша на сегодня$"), show_today_schedule)
+    )
+
+    # Список спикеров + биография
+    speakers_conv = ConversationHandler(
+        entry_points=[
+            MessageHandler(Filters.regex(r"^ФИО выступающих$"), show_speakers_entry),
+        ],
+        states={
+            CHOOSING_SPEAKER: [
+                MessageHandler(Filters.text & ~Filters.command, show_speaker_bio),
+            ],
+        },
+        fallbacks=[],
+    )
+    dp.add_handler(speakers_conv)
 
     # диалог доната:
     # - вход по кнопке "Донат" из обычной клавиатуры
