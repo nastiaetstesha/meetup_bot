@@ -12,7 +12,7 @@ from telegram.ext import (
     Filters,
 )
 
-from core.bot.handlers import (
+from meetupbot.core.bot.handlers.handlers_donate import (
     donate_entry,
     donate_choice,
     donate_set_amount,
