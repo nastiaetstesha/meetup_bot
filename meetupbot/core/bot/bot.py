@@ -148,7 +148,7 @@ def build_updater() -> Updater:
 
     speaker_app_conv = ConversationHandler(
         entry_points=[
-            MessageHandler(Filters.regex(r"^Хочу быть спикером!$"), speaker_app_handler),
+            MessageHandler(Filters.regex(r"^Хочу быть спикером$"), speaker_app_handler),
         ],
         states={
             FULL_NAME: [MessageHandler(Filters.text & ~Filters.command, speaker_app_full_name)],
