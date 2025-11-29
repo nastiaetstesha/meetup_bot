@@ -11,7 +11,18 @@ from telegram.ext import (
     ConversationHandler,
     Filters,
 )
-
+from core.bot.handlers.handlers_speaker_app import(
+    speaker_app_handler,
+    speaker_app_full_name,
+    speaker_app_age,
+    speaker_app_topic_title,
+    speaker_app_topic_description,
+    FULL_NAME,
+    AGE,
+    TOPIC_TITLE,
+    TOPIC_DESCRIPTION,
+)
+from core.bot.keyboards.main_menu import get_main_menu_keyboard, get_speaker_keyboard
 from core.bot.handlers.handlers_donate import (
     donate_entry,
     donate_choice,
@@ -134,6 +145,21 @@ def build_updater() -> Updater:
     )
 
     dp.add_handler(donate_conv)
+
+    speaker_app_conv = ConversationHandler(
+        entry_points=[
+            MessageHandler(Filters.regex(r"^Хочу быть спикером!$"), speaker_app_handler),
+        ],
+        states={
+            FULL_NAME: [MessageHandler(Filters.text & ~Filters.command, speaker_app_full_name)],
+            AGE: [MessageHandler(Filters.text & ~Filters.command, speaker_app_age)],
+            TOPIC_TITLE: [MessageHandler(Filters.text & ~Filters.command, speaker_app_topic_title)],
+            TOPIC_DESCRIPTION: [MessageHandler(Filters.text & ~Filters.command, speaker_app_topic_description)]
+        },
+        fallbacks=[],
+    )
+    
+    dp.add_handler(speaker_app_conv)
 
     logger.info("Handlers registered")
     return updater

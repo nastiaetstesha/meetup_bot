@@ -1,117 +1,87 @@
 from decimal import Decimal
-from telegram.ext import CallbackContext, CallbackQueryHandler, ConversationHandler, MessageHandler, Filters
+from telegram.ext import ConversationHandler
 from telegram import Update
+from telegram import ReplyKeyboardMarkup
 
 from core.models import SpeakerApplication, TelegramUser, Event
 from core.services.speaker_app import create_speaker_app
 from core.bot.keyboards.main_menu import get_main_menu_keyboard, get_speaker_keyboard
+
+exit_keyboard = ReplyKeyboardMarkup(
+    [["Вернуться в меню"]],
+    resize_keyboard=True
+)
+
 
 FULL_NAME = 1
 AGE = 2
 TOPIC_TITLE = 3
 TOPIC_DESCRIPTION = 4
 
-def handle_back(update: Update, user_id: int):
-    is_spk = is_speaker(user_id)
-    send_message_with_retry(
-        update.message,
-        "Вы в главном меню.",
-        reply_markup=get_main_menu_keyboard(is_speaker=is_spk),
-    )
-    return ConversationHandler.END
-
-def speaker_app_handler(update: Update, context: CallbackContext):
+def speaker_app_handler(update, context):
     context.user_data["speaker_app"] = {}
-    update.message.reply_text("Ты начал заявку на спикера!")
+    update.message.reply_text("Ты хочешь стать спикером!\n\nВведи своё ФИО:")
 
-    send_message_with_retry(
-        update.message,
-        "Ты хочешь стать спикером!\n\nВведи своё ФИО:",
-        reply_markup=get_speaker_keyboard(),
-    )
-    
     return FULL_NAME
 
-def speaker_app_full_name(update: Update, context: CallbackContext):
-    text = update.message.text.strip()
-    user_id = update.effective_user.id
-    
-    if text == "⬅️ Назад":
-        return handle_back(update, user_id)
+def speaker_app_full_name(update, context):
 
-    context.user_data["speaker_app"]["full_name"] = text
-    
-    send_message_with_retry(
-        update.message,
-        "Введи свой возраст",
-        reply_markup=get_speaker_keyboard(),
-    )
+    if update.message.text == "Вернуться в меню":
+        from core.bot.keyboards.main_menu import get_main_menu_keyboard
+        update.message.reply_text(
+            "Вы вернулись в главное меню 👋",
+            reply_markup=get_main_menu_keyboard(is_speaker=False)
+        )
+        return ConversationHandler.END
+
+    context.user_data["speaker_app"]["full_name"] = update.message.text
+    update.message.reply_text("Введи свой возраст", reply_markup=exit_keyboard)
+
     return AGE
 
-def speaker_app_age(update: Update, context: CallbackContext):
-    text = update.message.text.strip()
-    user_id = update.effective_user.id
-    
-    if text == "⬅️ Назад":
-        return handle_back(update, user_id)
-
-    try:
-        age = int(text)
-        context.user_data["speaker_app"]["age"] = age
-    except ValueError:
-        send_message_with_retry(
-            update.message,
-            "Пожалуйста, введите корректный возраст числом.",
-            reply_markup=get_speaker_keyboard(),
+def speaker_app_age(update, context):
+    if update.message.text == "Вернуться в меню":
+        from core.bot.keyboards.main_menu import get_main_menu_keyboard
+        update.message.reply_text(
+            "Вы вернулись в главное меню 👋",
+            reply_markup=get_main_menu_keyboard(is_speaker=False)
         )
-        return AGE
+        return ConversationHandler.END
     
-    send_message_with_retry(
-        update.message,
-        "Расскажи тему своего доклада",
-        reply_markup=get_speaker_keyboard(),
-    )
+    context.user_data["speaker_app"]["age"] = update.message.text
+    update.message.reply_text("Расскажи тему своего доклада", reply_markup=exit_keyboard)
     return TOPIC_TITLE
 
 
-def speaker_app_topic_title(update: Update, context: CallbackContext):
-    text = update.message.text.strip()
-    user_id = update.effective_user.id
-    
-    if text == "⬅️ Назад":
-        return handle_back(update, user_id)
-
-    try:
-        age = int(text)
-        context.user_data["speaker_app"]["topic_title"] = text
-    except ValueError:
-        send_message_with_retry(
-            update.message,
-            "Пожалуйста, введите тему еще раз",
-            reply_markup=get_speaker_keyboard(),
+def speaker_app_topic_title(update, context):
+    if update.message.text == "Вернуться в меню":
+        from core.bot.keyboards.main_menu import get_main_menu_keyboard
+        update.message.reply_text(
+            "Вы вернулись в главное меню 👋",
+            reply_markup=get_main_menu_keyboard(is_speaker=False)
         )
-        return TOPIC_TITLE
+        return ConversationHandler.END
     
-    send_message_with_retry(
-        update.message,
-        "Расскажи о чем хочешь рассказать",
-        reply_markup=get_speaker_keyboard(),
-    )
+    context.user_data["speaker_app"]["topic_title"] = update.message.text
+    update.message.reply_text("Расскажи о чем хочешь рассказать", reply_markup=exit_keyboard)
+
     return TOPIC_DESCRIPTION
 
 
-def speaker_app_topic_description(update: Update, context: CallbackContext):
-    text = update.message.text.strip()
-    user_id = update.effective_user.id
+def speaker_app_topic_description(update, context):
+    if update.message.text == "Вернуться в меню":
+        from core.bot.keyboards.main_menu import get_main_menu_keyboard
+        update.message.reply_text(
+            "Вы вернулись в главное меню 👋",
+            reply_markup=get_main_menu_keyboard(is_speaker=False)
+        )
+        return ConversationHandler.END
     
-    if text == "⬅️ Назад":
-        return handle_back(update, user_id)
+    context.user_data["speaker_app"]["topic_description"] = update.message.text
+    speaker_app = context.user_data["speaker_app"]
 
-    context.user_data["speaker_app"]["topic_description"] = text
-    speaker_data = context.user_data["speaker_app"]
-    
     try:
-        telegram_user = TelegramUser.objects.get(id=user_id)
+        telegram_user = TelegramUser.objects.get(id=context.user.id)  # Используйте id пользователя из контекста
         event = None 
         create_speaker_app(
             user=telegram_user,
@@ -127,16 +97,9 @@ def speaker_app_topic_description(update: Update, context: CallbackContext):
             f"Описание темы: {speaker_data['topic_description']}"
         )
 
-        send_message_with_retry(
-            update.message,
-            confirmation_message,
-            reply_markup=get_speaker_keyboard(),
-        )
-    except ValueError as e:
-        send_message_with_retry(
-            update.message,
-            str(e),
-            reply_markup=get_speaker_keyboard(),
-        )
+        update.message.reply_text(confirmation_message, reply_markup=exit_keyboard)
+
+    except Exception as e:
+        update.message.reply_text(f"Произошла ошибка: {str(e)}", reply_markup=exit_keyboard)
 
     return ConversationHandler.END
