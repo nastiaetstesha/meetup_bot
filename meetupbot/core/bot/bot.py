@@ -17,6 +17,8 @@ from core.bot.handlers.handlers_donate import (
     donate_choice,
     donate_set_amount,
     ASK_AMOUNT,
+)
+from core.bot.handlers.handlers_networking import (
     networking_start,
     profile_fill_name,
     profile_fill_age,

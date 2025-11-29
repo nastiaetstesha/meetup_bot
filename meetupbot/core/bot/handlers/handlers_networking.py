@@ -38,9 +38,8 @@ FAKE_MATCHES = [
     },
 ]
 
-# ================================
+
 # Основной сценарий "Познакомиться"
-# ================================
 
 def networking_start(update, context):
     context.user_data["profile"] = {}
@@ -130,9 +129,7 @@ def profile_menu_handler(update, context):
     return PROFILE_SHOW_MENU
 
 
-# ===================
-# ПОИСК СОБЕСЕДНИКОВ
-# ===================
+# Поиск собеседника
 
 def send_current_match(update, context):
     idx = context.user_data.get("match_index", 0)
@@ -214,7 +211,7 @@ def match_menu_handler(update, context):
     update.message.reply_text("Выберите действие по кнопкам ниже.")
     return MATCH_MENU
 
-# ВЫХОД В МЕНЮ
+# Выход в меню
 
 def _exit_to_menu(update):
     from core.bot.keyboards.main_menu import get_main_menu_keyboard
