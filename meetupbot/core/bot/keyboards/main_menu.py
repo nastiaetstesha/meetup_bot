@@ -11,7 +11,9 @@ def get_main_menu_keyboard(is_speaker=False):
         ["Афиша на сегодня", "Хочу быть спикером"],
         ["Познакомиться", "Донат"],
         ["Записаться на следующее мероприятие"],
+        ["Задать вопрос", "Я спикер"],
     ]
+
     if is_speaker:
         buttons.append(["Вопросы", "Выступил"])
     return ReplyKeyboardMarkup(buttons, resize_keyboard=True, one_time_keyboard=False)
@@ -61,12 +63,12 @@ def get_speakers_keyboard(speakers):
         one_time_keyboard=True,
     )
 
-def get_schedule_keyboard():
-    return ReplyKeyboardMarkup(
-        [[" Назад"]],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
+# def get_schedule_keyboard():
+#     return ReplyKeyboardMarkup(
+#         [[" Назад"]],
+#         resize_keyboard=True,
+#         one_time_keyboard=True,
+# )
 def get_speaker_keyboard():
     return ReplyKeyboardMarkup(
         [[" Назад"]],
@@ -101,3 +103,11 @@ def get_subscribe_keyboard(is_subscribed: bool = False):
     else:
         buttons = [["Хочу следить за следующими мероприятиями", "⬅️ Назад"]]
     return ReplyKeyboardMarkup(buttons, resize_keyboard=True, one_time_keyboard=True)
+
+
+def get_schedule_keyboard():
+    return ReplyKeyboardMarkup(
+        [["ФИО выступающих"], ["⬅️ Назад"]],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
