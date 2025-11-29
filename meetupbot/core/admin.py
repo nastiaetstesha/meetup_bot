@@ -3,7 +3,7 @@ from .models import (
     TelegramUser, Event, Talk,
     SpeakerProfile, SpeakerApplication,
     FutureEventSubscription,
-    NetworkingProfile, NetworkingEncounter,
+    NetworkingProfile,
     Question, Donation,
 )
 
@@ -25,6 +25,5 @@ admin.site.register(SpeakerProfile)
 admin.site.register(SpeakerApplication)
 admin.site.register(FutureEventSubscription)
 admin.site.register(NetworkingProfile)
-admin.site.register(NetworkingEncounter)
 admin.site.register(Question)
 admin.site.register(Donation)
