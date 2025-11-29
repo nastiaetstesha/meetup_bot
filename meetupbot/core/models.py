@@ -109,7 +109,7 @@ class NetworkingProfile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"NetworkingProfile({self.user.tg_id})"
+        return f"{self.user} {self.user.tg_id}"
 
 
 class Question(models.Model):
