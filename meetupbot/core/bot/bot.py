@@ -61,6 +61,13 @@ from core.bot.handlers.handlers_questions import (
     CHOOSE_TALK,
     WRITE_QUESTION,
 )
+from core.bot.handlers.handlers_subscriptions import (
+    subscriptions_handler,
+    subscriptions_name,
+    subscriptions_comment,
+    NAME,
+    COMMENT,
+)
 from core.bot.keyboards.main_menu import get_main_menu_keyboard
 
 
@@ -213,6 +220,20 @@ def build_updater() -> Updater:
     )
     
     dp.add_handler(speaker_app_conv)
+
+
+    subscriptions_conv = ConversationHandler(
+        entry_points=[
+            MessageHandler(Filters.regex(r"^Подписаться на следующие мероприятия$"), subscriptions_handler),
+        ],
+        states={
+            NAME: [MessageHandler(Filters.text & ~Filters.command, subscriptions_name)],
+            COMMENT: [MessageHandler(Filters.text & ~Filters.command, subscriptions_comment)]
+        },
+        fallbacks=[],
+    )
+
+    dp.add_handler(subscriptions_conv)
 
     # Глобальная кнопка "Назад" (работает там, где нет активного диалога)
     dp.add_handler(
