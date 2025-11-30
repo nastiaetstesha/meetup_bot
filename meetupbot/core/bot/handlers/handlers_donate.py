@@ -1,12 +1,13 @@
 from decimal import Decimal
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, CallbackQueryHandler, ConversationHandler, MessageHandler, Filters
+from telegram import ReplyKeyboardMarkup
 
 from core.models import TelegramUser, Event
 from core.services.donations import create_pending_donation, mark_donation_paid
 
-ASK_AMOUNT = 1
 
+ASK_AMOUNT = 1
 
 def donate_entry(update: Update, context: CallbackContext):
     keyboard = [
@@ -66,4 +67,4 @@ def donate_set_amount(update: Update, context: CallbackContext):
         f"Спасибо за поддержку на {amount} ₽! \n"
         f"(пока это тестовый донат, без реальной оплаты)"
     )
-    return ConversationHandler.END
+    return ConversationHandler.END 

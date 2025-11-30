@@ -93,37 +93,23 @@ class FutureEventSubscription(models.Model):
 
 
 class NetworkingProfile(models.Model):
-    ''' Анкета для нетворкинга '''
 
-    user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-
-    about = models.TextField()
-    experience_level = models.CharField(max_length=50, blank=True)
-    tech_stack = models.CharField(max_length=255, blank=True)
-    looking_for = models.CharField(max_length=255, blank=True)
-
-    last_filled_at = models.DateTimeField(auto_now=True)
-    is_active = models.BooleanField(default=True)
-
-
-class NetworkingEncounter(models.Model):
-    ''' История “матчей” и показов анкет для нетворкинга '''
-
-    STATUS_CHOICES = [
-        ('shown', 'Показано'),
-        ('skipped', 'Пропущен'),
-        ('accepted', 'Принят'),
-    ]
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    from_user = models.ForeignKey(
-        TelegramUser, on_delete=models.CASCADE, related_name='sent_encounters'
+    user = models.OneToOneField(
+        TelegramUser,
+        on_delete=models.CASCADE,
+        related_name="networking_profile"
     )
-    to_user = models.ForeignKey(
-        TelegramUser, on_delete=models.CASCADE, related_name='received_encounters'
-    )
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='shown')
+
+    name = models.CharField(max_length=255)
+    age = models.CharField(max_length=50)
+    stack = models.CharField(max_length=255)
+    goal = models.TextField()
+
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user} {self.user.tg_id}"
 
 
 class Question(models.Model):
