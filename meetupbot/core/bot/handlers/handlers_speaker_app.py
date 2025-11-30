@@ -5,7 +5,7 @@ from telegram import ReplyKeyboardMarkup
 
 from core.models import SpeakerApplication, TelegramUser, Event
 from core.services.speaker_app import create_speaker_app
-from core.bot.keyboards.main_menu import get_main_menu_keyboard, get_speaker_keyboard
+from core.bot.keyboards.main_menu import get_main_menu_keyboard, get_speaker_keyboard, BACK_BUTTON
 from django.utils import timezone # хз 
 
 

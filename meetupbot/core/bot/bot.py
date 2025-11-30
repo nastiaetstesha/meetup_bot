@@ -22,7 +22,7 @@ from core.bot.handlers.handlers_speaker_app import(
     TOPIC_TITLE,
     TOPIC_DESCRIPTION,
 )
-from core.bot.keyboards.main_menu import get_main_menu_keyboard, get_speaker_keyboard
+from core.bot.keyboards.main_menu import get_main_menu_keyboard, get_speaker_keyboard, BACK_BUTTON
 from core.bot.handlers.handlers_donate import (
     donate_entry,
     donate_choice,

@@ -32,6 +32,7 @@ MEETUP_BOT/
       └─ commands/
          └─ run_bot.py     # команда `python manage.py run_bot`
 
+```
 
 ## Модели проекта
 
@@ -92,3 +93,24 @@ python manage.py run_bot
 Открыть в Telegram своего бота @MeeetUuup_bot, написать /start.
 
 cd /.../meetup_bot/meetupbot
+
+
+Сейчас логика `_get_current_event()` такая:
+```
+def _get_current_event():
+    now = timezone.now().date()
+    event = Event.objects.filter(is_current=True).order_by("date").first()
+    if event:
+        return event
+    return (
+        Event.objects.filter(is_active=True, date__gte=now)
+        .order_by("date")
+        .first()
+    )
+```
+
+То есть - всегда убираем после мероприятия `is_current=True`:
+
+Если есть хоть одно Event с `is_current=True` — бот всегда берёт его, даже если дата 1935 год.
+
+Только если нет `is_current=True`, он смотрит активные ивенты по дате (date__gte=now).

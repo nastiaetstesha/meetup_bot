@@ -3,7 +3,7 @@ from telegram.ext import CallbackContext, ConversationHandler, MessageHandler, F
 from django.utils import timezone
 
 from core.models import Event, Talk, TelegramUser, Question
-from core.bot.keyboards.main_menu import get_main_menu_keyboard, get_speaker_menu_keyboard
+from core.bot.keyboards.main_menu import get_main_menu_keyboard, get_speaker_menu_keyboard, BACK_BUTTON
 
 CHOOSE_TALK, WRITE_QUESTION = range(2)
 
@@ -46,15 +46,18 @@ def ask_question_entry(update: Update, context: CallbackContext):
 
     update.message.reply_text(
         "Выбери доклад, к которому хочешь задать вопрос:",
-        reply_markup=ReplyKeyboardMarkup(titles + [["⬅️ Назад"]], resize_keyboard=True),
+        reply_markup=ReplyKeyboardMarkup(titles + [[BACK_BUTTON]], resize_keyboard=True),
     )
     return CHOOSE_TALK
 
 
 def ask_question_choose_talk(update: Update, context: CallbackContext):
     text = update.message.text.strip()
-    if text in ("⬅️ Назад", "Назад"):
-        update.message.reply_text("Окей, вернёмся в меню")
+    if text == BACK_BUTTON:
+        update.message.reply_text(
+            "Окей, вернёмся в меню",
+            reply_markup=get_main_menu_keyboard(is_speaker=False),
+        )
         return ConversationHandler.END
 
     talks_map = context.user_data.get("talks_map") or {}
@@ -74,8 +77,11 @@ def ask_question_choose_talk(update: Update, context: CallbackContext):
 
 def ask_question_write(update: Update, context: CallbackContext):
     text = update.message.text.strip()
-    if text in ("⬅️ Назад", "Назад"):
-        update.message.reply_text("Окей, вернёмся в меню")
+    if text == BACK_BUTTON:
+        update.message.reply_text(
+            "Окей, вернёмся в меню",
+            reply_markup=get_main_menu_keyboard(is_speaker=False),
+        )
         return ConversationHandler.END
 
     tg_user = update.effective_user

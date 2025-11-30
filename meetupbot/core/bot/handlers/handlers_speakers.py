@@ -7,7 +7,11 @@ from core.models import Event, TelegramUser, SpeakerProfile
 from core.bot.keyboards.main_menu import (
     get_speakers_keyboard,
     get_speaker_keyboard,
+    get_main_menu_keyboard,
+    # get_speaker_menu_keyboard,
+    BACK_BUTTON,
 )
+
 
 CHOOSING_SPEAKER = 1
 
@@ -78,9 +82,12 @@ def show_speaker_bio(update: Update, context: CallbackContext):
     """
     text = update.message.text.strip()
 
-    # Назад — просто выходим из диалога
-    if text in ("Назад", "⬅️ Назад", " Назад"):
-        update.message.reply_text("Окей, вернёмся в меню")
+    #BACK_BUTTON — просто выходим из диалога
+    if text == BACK_BUTTON:
+        update.message.reply_text(
+            "Окей, вернёмся в меню",
+            reply_markup=get_main_menu_keyboard(is_speaker=False),
+        )
         return ConversationHandler.END
 
     speakers_map = context.user_data.get("speakers_map") or {}

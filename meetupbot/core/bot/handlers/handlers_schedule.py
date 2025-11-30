@@ -3,7 +3,7 @@ from telegram.ext import CallbackContext
 from django.utils import timezone
 
 from core.models import Event, Talk
-from core.bot.keyboards.main_menu import get_schedule_keyboard
+from core.bot.keyboards.main_menu import get_schedule_keyboard, BACK_BUTTON
 
 
 def show_today_schedule(update: Update, context: CallbackContext):
