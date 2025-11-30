@@ -3,7 +3,12 @@ from telegram.ext import CallbackContext, ConversationHandler, MessageHandler, F
 from django.utils import timezone
 
 from core.models import Event, Talk, TelegramUser, Question
-from core.bot.keyboards.main_menu import get_main_menu_keyboard, get_speaker_menu_keyboard, BACK_BUTTON
+from core.bot.keyboards.main_menu import (
+    get_main_menu_keyboard,
+    get_speaker_menu_keyboard,
+    get_cancel_keyboard,
+    BACK_BUTTON,
+)
 
 CHOOSE_TALK, WRITE_QUESTION = range(2)
 
@@ -20,8 +25,7 @@ def _get_current_event():
     )
 
 
-# слушатель: задать вопрос 
-
+# СЛУШАТЕЛЬ: ЗАДАТЬ ВОПРОС
 
 def ask_question_entry(update: Update, context: CallbackContext):
     event = _get_current_event()
@@ -31,14 +35,18 @@ def ask_question_entry(update: Update, context: CallbackContext):
         )
         return ConversationHandler.END
 
-    talks = event.talks.all().order_by("start_at", "order")
+    # Берём только текущие доклады (те, которые сейчас идут)
+    talks = (
+        event.talks.filter(is_current=True)
+        .order_by("start_at", "order")
+    )
+
     if not talks.exists():
         update.message.reply_text(
-            "Программа докладов ещё формируется, поэтому пока некому задать вопрос"
+            "Сейчас нет активных докладов — вопросы больше не принимаются "
         )
         return ConversationHandler.END
 
-    # делаем клавиатуру с названиями докладов
     from telegram import ReplyKeyboardMarkup
 
     titles = [[talk.title] for talk in talks]
@@ -96,6 +104,13 @@ def ask_question_write(update: Update, context: CallbackContext):
         update.message.reply_text("Не смог найти доклад, попробуй ещё раз ")
         return ConversationHandler.END
 
+    # Если доклад уже завершён — не принимаем вопросы
+    if not talk.is_current:
+        update.message.reply_text(
+            "Выступление по этому докладу уже завершилось, вопросы больше не принимаются "
+        )
+        return ConversationHandler.END
+
     question = Question.objects.create(
         event=talk.event,
         talk=talk,
@@ -107,7 +122,7 @@ def ask_question_write(update: Update, context: CallbackContext):
     # уведомляем спикера, если он есть
     speaker = talk.speaker
     if speaker and speaker.tg_id:
-        update.bot.send_message(
+        context.bot.send_message(
             chat_id=speaker.tg_id,
             text=(
                 f"Новый вопрос к твоему докладу «{talk.title}»:\n\n"
@@ -121,44 +136,10 @@ def ask_question_write(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
-# спикерский режим: кнопка "Я спикер"
+# СПИКЕРСКИЙ РЕЖИМ: "Я спикер" + вопросы 
 
-
-# def enter_speaker_mode(update: Update, context: CallbackContext):
-#     tg_user = update.effective_user
-#     db_user, _ = TelegramUser.objects.get_or_create(
-#         tg_id=tg_user.id,
-#         defaults={"username": tg_user.username or ""},
-#     )
-
-#     # ищем доклады этого пользователя
-#     event = _get_current_event()
-#     talk = (
-#         Talk.objects.filter(event=event, speaker=db_user, is_current=True)
-#         .order_by("start_at")
-#         .first()
-#     )
-
-#     if not event or not talk:
-#         update.message.reply_text(
-#             "Я не вижу твоего выступления в сегодняшней программе \n"
-#             "Если хочешь подать заявку, нажми «Хочу быть спикером»."
-#         )
-#         return
-
-#     # помечаем, что он спикер 
-#     db_user.is_speaker = True
-#     db_user.save()
-
-#     context.user_data["speaker_mode"] = True
-#     context.user_data["current_talk_id"] = talk.id
-
-#     update.message.reply_text(
-#         "Отлично! Я запомнил, что ты спикер.\n"
-#         "Теперь можешь смотреть вопросы слушателей к твоему выступлению.",
-#         reply_markup=get_speaker_menu_keyboard(),
-#     )
 def enter_speaker_mode(update: Update, context: CallbackContext):
+    """Кнопка 'Я спикер'."""
     tg_user = update.effective_user
 
     db_user, _ = TelegramUser.objects.get_or_create(
@@ -174,7 +155,7 @@ def enter_speaker_mode(update: Update, context: CallbackContext):
         .first()
     )
 
-    # 2. Если не нашли — пробуем по username (на случай «ручного» TelegramUser)
+    # 2. Если не нашли — пробуем по username (на случай ручного TelegramUser)
     if not talk and tg_user.username:
         talk = (
             Talk.objects.filter(
@@ -189,10 +170,8 @@ def enter_speaker_mode(update: Update, context: CallbackContext):
         # если нашли по username, но speaker другой объект —
         # перепривяжем доклад к "правильному" db_user
         if talk and talk.speaker != db_user:
-            old_speaker = talk.speaker
             talk.speaker = db_user
             talk.save()
-            # опционально: старого можно почистить руками в админке
 
     if not talk:
         update.message.reply_text(
@@ -215,6 +194,7 @@ def enter_speaker_mode(update: Update, context: CallbackContext):
         reply_markup=get_speaker_menu_keyboard(),
     )
 
+
 def _get_db_user(update: Update) -> TelegramUser:
     tg_user = update.effective_user
     db_user, _ = TelegramUser.objects.get_or_create(
@@ -226,16 +206,12 @@ def _get_db_user(update: Update) -> TelegramUser:
 
 def _get_current_talk_for_speaker(db_user: TelegramUser, context: CallbackContext):
     """Пытаемся найти 'актуальный' доклад для спикера."""
-    from core.models import Talk
-
-    # 1) если мы его уже сохраняли при 'Я спикер'
     talk_id = context.user_data.get("current_talk_id")
     if talk_id:
         talk = Talk.objects.filter(id=talk_id).select_related("event").first()
         if talk:
             return talk
 
-    # 2) иначе ищем по speaker + is_current
     talk = (
         Talk.objects.filter(speaker=db_user, is_current=True)
         .select_related("event")
@@ -246,10 +222,7 @@ def _get_current_talk_for_speaker(db_user: TelegramUser, context: CallbackContex
 
 
 def show_speaker_questions(update: Update, context: CallbackContext):
-    """
-    Кнопка 'Вопросы' в меню спикера.
-    Показывает все вопросы к его текущему докладу.
-    """
+    """Кнопка 'Вопросы' в меню спикера."""
     db_user = _get_db_user(update)
     talk = _get_current_talk_for_speaker(db_user, context)
 
@@ -286,9 +259,7 @@ def show_speaker_questions(update: Update, context: CallbackContext):
 
 
 def speaker_still_talking(update: Update, context: CallbackContext):
-    """
-    Кнопка 'Еще выступаю' — просто поддерживающее сообщение.
-    """
+    """Кнопка 'Еще выступаю' — просто поддерживающее сообщение."""
     db_user = _get_db_user(update)
     talk = _get_current_talk_for_speaker(db_user, context)
 
@@ -318,12 +289,10 @@ def speaker_finished(update: Update, context: CallbackContext):
         talk.is_current = False
         talk.save()
 
-    # если используешь is_speaker как флаг роли — снимаем
     if hasattr(db_user, "is_speaker"):
         db_user.is_speaker = False
         db_user.save()
 
-    # чистим временные данные в user_data
     context.user_data.pop("speaker_mode", None)
     context.user_data.pop("current_talk_id", None)
 
