@@ -75,6 +75,13 @@ def start(update, context):
         reply_markup=get_main_menu_keyboard(is_speaker=False),
     )
 
+def back_to_main_menu(update, context):
+    """Общий обработчик кнопки 'Назад' – возвращает в главное меню."""
+    update.message.reply_text(
+        "Окей, вернёмся в меню",
+        reply_markup=get_main_menu_keyboard(is_speaker=False),
+    )
+
 
 def build_updater() -> Updater:
     # токен берём из настроек Django
@@ -207,5 +214,10 @@ def build_updater() -> Updater:
     
     dp.add_handler(speaker_app_conv)
 
+    # Глобальная кнопка "Назад" (работает там, где нет активного диалога)
+    dp.add_handler(
+        MessageHandler(Filters.regex(rf"^{BACK_BUTTON}$"), back_to_main_menu)
+    )
+    
     logger.info("Handlers registered")
     return updater
