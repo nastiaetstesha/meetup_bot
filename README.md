@@ -1,5 +1,7 @@
 ## Структура проекта
 
+http://80.89.224.137:8000/admin/
+
 ```text
 MEETUP_BOT/
 ├─ .venv/
@@ -51,30 +53,6 @@ MEETUP_BOT/
 | `Broadcast`               | Представляет рассылку или важное объявление, созданное организатором, связанное с Event или глобальное.                      |
 | `BroadcastDelivery`       | Лог доставки Broadcast каждому TelegramUser, чтобы контролировать успешность отправки.                                       |
 
-
-
-уже сделано
-1. Клавиатуры (main_menu.py)
-
-Главное меню (get_main_menu_keyboard)
-
-Клавиатура выбора суммы доната (get_donate_keyboard)
-
-Подтверждение суммы, cancel, нетворкинг, меню спикера и т.д.
-
-Это отлично — UI на кнопках уже готов.
-
-2. Donate-handlers (handlers.py)
-
-donate_entry — показывает инлайн-кнопки “Поддержать митап / Не сейчас”.
-
-donate_choice — обрабатывает выбор:
-
-при donate_no завершает диалог и “не давит” ✔️
-
-при donate_yes просит ввести сумму.
-
-donate_set_amount — принимает сумму, создаёт Donation через create_pending_donation и сразу помечает paid через mark_donation_paid.
 
 # Функция «Познакомиться» 
 
@@ -162,3 +140,5 @@ def _get_current_event():
 Если есть хоть одно Event с `is_current=True` — бот всегда берёт его, даже если дата 1935 год.
 
 Только если нет `is_current=True`, он смотрит активные ивенты по дате (date__gte=now).
+
+
