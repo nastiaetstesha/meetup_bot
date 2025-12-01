@@ -59,7 +59,7 @@ def get_profiles_finished_keyboard():
 
 def get_speakers_keyboard(speakers):
     return ReplyKeyboardMarkup(
-        [[speaker["name"]] for speaker in speakers] + [["Назад"]],
+        [[speaker["name"]] for speaker in speakers] + [[BACK_BUTTON]],
         resize_keyboard=True,
         one_time_keyboard=True,
     )
@@ -72,7 +72,7 @@ def get_speakers_keyboard(speakers):
 # )
 def get_speaker_keyboard():
     return ReplyKeyboardMarkup(
-        [["Назад"]],
+        [[BACK_BUTTON]],
         resize_keyboard=True,
         one_time_keyboard=True,
     )
